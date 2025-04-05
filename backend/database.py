@@ -1,21 +1,9 @@
 import psycopg2
+import os
 
-# PostgreSQL database connection details
-DB_HOST = "dpg-cvod76umcj7s73826i9g-a.databases.render.com"
-DB_PORT = "5432"
-DB_NAME = "llmpldb"
-DB_USER = "llmpldb_user"
-DB_PASSWORD = "mzu2PKFnO3kVoyStsggkOPle4pUcYEzx"   # <<== 🔥 paste your real password here
-
-# Connect to PostgreSQL
+# Connect to PostgreSQL using DATABASE_URL from environment variables
 def connect():
-    return psycopg2.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD
-    )
+    return psycopg2.connect(os.getenv("DATABASE_URL"))
 
 # Initialize database and create tables
 def init_db():
