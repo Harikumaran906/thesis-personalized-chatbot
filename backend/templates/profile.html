@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile - Personalized Chatbot</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h2>Profile Information</h2>
+
+    <p><strong>Username:</strong> {{ username }}</p>
+    <p><strong>Birthdate:</strong> {{ birthdate }}</p>
+    <p><strong>Current Study Level:</strong> {{ edu_level }}</p>
+
+    <h3>Update Study Level</h3>
+    <form method="POST">
+        <select name="edu_level">
+            <option value="elementary" {% if edu_level == 'elementary' %}selected{% endif %}>Elementary</option>
+            <option value="secondary" {% if edu_level == 'secondary' %}selected{% endif %}>Secondary</option>
+            <option value="university" {% if edu_level == 'university' %}selected{% endif %}>University</option>
+            <option value="phd" {% if edu_level == 'phd' %}selected{% endif %}>PhD</option>
+        </select><br><br>
+
+        <input type="submit" value="Update">
+    </form>
+    <p><a href="/">Return to Chat</a></p>
+</body>
+</html>
