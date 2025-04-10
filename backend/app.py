@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 from database import init_db, add_user, get_user, get_user_by_id, save_message, get_messages, clear_chat_history, update_study_level
 
-from openai_helper import get_ai_answer
+from openai_srvr import get_ai_answer
 import os
 
 app = Flask(__name__, static_folder="../static", template_folder="templates")
@@ -30,6 +30,17 @@ def clear():
     clear_chat_history(session['user_id'])
     return redirect(url_for('index'))
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        edu_level = request.form['edu_level']
+        birthdate = request.form['birthdate']
+        add_user(username, password, edu_level, birthdate)
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -42,17 +53,6 @@ def login():
             session['edu_level'] = user[3]
             return redirect(url_for('index'))
     return render_template('login.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        edu_level = request.form['edu_level']
-        birthdate = request.form['birthdate']
-        add_user(username, password, edu_level, birthdate)
-        return redirect(url_for('login'))
-    return render_template('register.html')
 
 @app.route('/logout')
 def logout():
@@ -70,11 +70,13 @@ def profile():
         update_study_level(session['user_id'], edu_level)
         session['edu_level'] = edu_level
 
-    # Fetch full user info from database
     user = get_user_by_id(session['user_id'])
     return render_template('profile.html', username=user[1], edu_level=user[3], birthdate=user[4])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
+

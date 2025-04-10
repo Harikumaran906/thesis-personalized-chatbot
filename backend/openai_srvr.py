@@ -7,7 +7,7 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def get_ai_answer(prompt, edu_level):
-    full_prompt = f"You are a tutor for a {edu_level} student. Answer this question accordingly:\n{prompt}"
+    full_prompt = f"You are a tutor for a {edu_level} student. Answer this question that is understandable by him:\n{prompt}"
     response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[

@@ -1,7 +1,7 @@
 import psycopg2
 import os
 
-# Connect to PostgreSQL using DATABASE_URL from environment variables
+# Connect to PostgreSQL database using DATABASE_URL
 def connect():
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
