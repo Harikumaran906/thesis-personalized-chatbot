@@ -9,12 +9,8 @@
     <h2>Welcome to Personalized Chatbot</h2>
     <p>
         Welcome, {{ username }}!
-        <form action="/logout" method="get" style="display:inline;">
-            <button type="submit">Logout</button>
-        </form>
-        <form action="/profile" method="get" style="display:inline;">
-            <button type="submit">Profile</button>
-        </form>
+        <button onclick="location.href='/logout'">Logout</button>
+        <button onclick="location.href='/profile'">Profile</button>
         <button onclick="clr_chat()">Clear Chat History</button>
     </p>
 
