@@ -16,13 +16,15 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    data = request.get_json()  # <<<< Get JSON data correctly
+    data = request.get_json()
     user_input = data['user_input']
     edu_level = data['edu_level']
-    ai_answer = get_ai_answer(user_input, edu_level)
+    course = data.get('course', '')
+    ai_answer = get_ai_answer(user_input, edu_level, course)
     save_message(session['user_id'], 'user', user_input)
     save_message(session['user_id'], 'bot', ai_answer)
     return {'ai_answer': ai_answer}
+
 
 
 @app.route('/clear')

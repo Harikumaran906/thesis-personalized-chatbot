@@ -26,6 +26,10 @@
         <option value="phd" {% if edu_level == 'phd' %}selected{% endif %}>PhD</option>
     </select>
 
+    <label for="course">Enter Course/Topic:</label>
+    <input type="text" id="course" placeholder="e.g., Quantum Physics">
+
+
     <div id="chat_area">
         {% for role, content in history %}
             <p><strong>{{ 'You' if role == 'user' else 'Bot' }}:</strong> {{ content }}</p>
