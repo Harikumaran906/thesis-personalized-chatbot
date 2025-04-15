@@ -1,11 +1,9 @@
 import psycopg2
 import os
 
-# Connect to PostgreSQL database using DATABASE_URL
 def connect():
     return psycopg2.connect(os.getenv("DATABASE_URL"))
 
-# Initialize database and create tables
 def init_db():
     conn = connect()
     c = conn.cursor()
@@ -25,7 +23,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Add a new user
 def add_user(username, password, edu_level, birthdate):
     conn = connect()
     c = conn.cursor()
@@ -34,7 +31,6 @@ def add_user(username, password, edu_level, birthdate):
     conn.commit()
     conn.close()
 
-# Get user by username and password
 def get_user(username, password):
     conn = connect()
     c = conn.cursor()
@@ -43,7 +39,6 @@ def get_user(username, password):
     conn.close()
     return user
 
-# Get user by ID (for profile page)
 def get_user_by_id(user_id):
     conn = connect()
     c = conn.cursor()
@@ -52,7 +47,6 @@ def get_user_by_id(user_id):
     conn.close()
     return user
 
-# Save a message (chat)
 def save_message(user_id, role, content):
     conn = connect()
     c = conn.cursor()
@@ -61,7 +55,6 @@ def save_message(user_id, role, content):
     conn.commit()
     conn.close()
 
-# Get all messages (chat history) for a user
 def get_messages(user_id):
     conn = connect()
     c = conn.cursor()
@@ -70,7 +63,6 @@ def get_messages(user_id):
     conn.close()
     return history
 
-# Clear chat history for a user
 def clear_chat_history(user_id):
     conn = connect()
     c = conn.cursor()
@@ -78,7 +70,6 @@ def clear_chat_history(user_id):
     conn.commit()
     conn.close()
 
-# Update study level in profile
 def update_study_level(user_id, edu_level):
     conn = connect()
     c = conn.cursor()
