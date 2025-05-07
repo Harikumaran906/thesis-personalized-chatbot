@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat History - Personalized AI Tutor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <h2>Chat History</h2>
+    <p>Welcome, {{ username }}!</p>
+    <button onclick="location.href='/main'">Back to Menu</button>
+
+    {% if all_messages %}
+        {% for i in range(0, all_messages|length, 2) %}
+            {% set user_msg = all_messages[i] %}
+            {% set bot_msg = all_messages[i+1] if i+1 < all_messages|length else None %}
+
+            {% if user_msg[3] == 'guided' %}
+                {# Guided message: extract only subtopic title #}
+                {% set subtopic = user_msg[1].split('–')[-1].strip() %}
+                <p><strong>{{ username }}:</strong> {{ subtopic }}</p>
+            {% else %}
+                <p><strong>{{ username }}:</strong> {{ user_msg[1] }}</p>
+            {% endif %}
+
+            {% if bot_msg %}
+                <p><strong>Bot:</strong> {{ bot_msg[1] | safe }}</p>
+            {% endif %}
+            <hr>
+        {% endfor %}
+    {% else %}
+        <p>No chat history available.</p>
+    {% endif %}
+</body>
+</html>

@@ -1,27 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Profile - Personalized Chatbot</title>
+    <title>Profile - Personalized AI Tutor</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h2>Profile Information</h2>
-
+    <h2>Profile</h2>
     <p><strong>Username:</strong> {{ username }}</p>
     <p><strong>Birthdate:</strong> {{ birthdate }}</p>
-    <p><strong>Current Study Level:</strong> {{ edu_level }}</p>
 
-    <h3>Update Study Level</h3>
     <form method="POST">
-        <select name="edu_level">
-            <option value="elementary" {% if edu_level == 'elementary' %}selected{% endif %}>Elementary</option>
-            <option value="secondary" {% if edu_level == 'secondary' %}selected{% endif %}>Secondary</option>
-            <option value="university" {% if edu_level == 'university' %}selected{% endif %}>University</option>
-            <option value="phd" {% if edu_level == 'phd' %}selected{% endif %}>PhD</option>
-        </select><br><br>
-
+        <label>Preferred Explanation Length:</label><br>
+        <select name="answer_length">
+            <option value="short" {% if answer_length == 'short' %}selected{% endif %}>Short</option>
+            <option value="medium" {% if answer_length == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="detailed" {% if answer_length == 'detailed' %}selected{% endif %}>Detailed</option>
+        </select>
         <input type="submit" value="Update">
     </form>
-    <p><a href="/">Return to Chat</a></p>
+    <button onclick="location.href='/main'">Back to Menu</button>
+
+    <hr>
+    <h3>Topic Progress, Scores and Difficulty</h3>
+    <table border="1" cellpadding="8">
+        <tr>
+            <th>Topic</th>
+            <th>Progress</th>
+            <th>Quiz Score</th>
+            <th>Difficulty</th>
+            <th>Actions</th>
+        </tr>
+        {% for topic, data in topic_scores.items() %}
+        <tr>
+            <td>{{ topic }}</td>
+            <td>{{ data.progress }}</td>
+            <td>{{ data.score }}</td>
+            <td>{{ data.difficulty }}</td>
+            <td>
+                <div class="profile-actions">
+                    <form method="POST" action="/set_current_topic/{{ data.topic_id }}">
+                        <button type="submit">Make Current Topic</button>
+                    </form>
+                    {% if data.progress.split('/')[0] == data.progress.split('/')[1] and data.progress != '0/0' %}
+                        <form method="GET" action="/quiz">
+                            <input type="hidden" name="topic" value="{{ topic }}">
+                            <button type="submit">Take Quiz</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <br>
+
 </body>
 </html>

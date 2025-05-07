@@ -1,26 +1,32 @@
-function send_msg() {
-    const userInput = document.getElementById('user_input').value;
-    const edu_level = document.getElementById('edu_level').value;
-    const course = document.getElementById('course').value;
+document.addEventListener('DOMContentLoaded', function () {
+    const doubtForm = document.getElementById('doubt_form');
+    const doubtInput = document.getElementById('doubt');
+    const chatArea = document.getElementById('chat_area');
 
-    fetch('/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            user_input: userInput,
-            edu_level: edu_level,
-            course: course
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        const chat_area = document.getElementById('chat_area');
-        chat_area.innerHTML += `<p><strong>You (${edu_level}, ${course}):</strong> ${userInput}</p>`;
-        chat_area.innerHTML += `<p><strong>Bot:</strong> ${data.ai_answer}</p>`;
-        document.getElementById('user_input').value = '';
-    });
-}
+    if (doubtForm) {
+        doubtForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const doubt = doubtInput.value.trim();
+            if (!doubt) return;
 
-function clr_chat() {
-    window.location.href = "/clear";
-}
+            // Show the user's question
+            chatArea.innerHTML = `<p><strong>You:</strong> ${doubt}</p>`;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ doubt: doubt })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show bot's answer
+                chatArea.innerHTML += `<p><strong>Bot:</strong> ${data.ai_answer}</p>`;
+                doubtInput.value = '';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                chatArea.innerHTML += `<p style="color:red;"><strong>Error:</strong> Could not get response</p>`;
+            });
+        });
+    }
+});

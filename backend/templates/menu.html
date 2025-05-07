@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Main Menu - Personalized FAI Tutor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h2>Welcome to your Personalized learning Assistant of the course</h2>
+    <h2>"Fundamentals of Artificial Intelligence"</h2>
+    <h2>Main Menu</h2>
+    <p>Welcome, {{ username }}!</p>
+
+    <div>
+        <button onclick="location.href='/chat'">Start Guided Learning</button><br><br>
+        <button onclick="location.href='/profile'">View Profile</button><br><br>
+        <button onclick="location.href='/chat_history'">Chat History</button><br><br>
+        <button onclick="location.href='/logout'">Logout</button>
+    </div>
+</body>
+</html>

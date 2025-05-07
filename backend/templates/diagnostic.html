@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagnostic Test - Personalized AI Tutor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h2>Initial Diagnostic Test</h2>
+    <p>This test will help us understand your current familiarity with AI topics. It contains 25 MCQs from 5 categories.</p>
+
+    <form method="POST" action="/diagnostic">
+        {% for q in diagnostic_questions %}
+            {% set q_index = loop.index %}
+            <div style="margin-bottom: 25px;">
+                <p><strong>Q{{ q_index }}:</strong> {{ q.question }}</p>
+                <input type="hidden" name="q{{ q_index }}" value="{{ q.question }}">
+                <input type="hidden" name="correct{{ q_index }}" value="{{ q.answer }}">
+                <input type="hidden" name="category{{ q_index }}" value="{{ q.category }}">
+
+                {% for option in q.options %}
+                    <div>
+                        <input type="radio" name="selected{{ q_index }}" value="{{ option[0] }}" required>
+                        <label>{{ option }}</label>
+                    </div>
+                {% endfor %}
+                <div>
+                    <input type="radio" name="selected{{ q_index }}" value="X">
+                    <label>I don't know</label>
+                </div>
+            </div>
+        {% endfor %}
+
+        <input type="hidden" name="username" value="{{ username }}">
+        <input type="hidden" name="password" value="{{ password }}">
+        <input type="hidden" name="birthdate" value="{{ birthdate }}">
+        <input type="hidden" name="answer_length" value="{{ answer_length }}">
+
+        <input type="submit" value="Submit Diagnostic Test">
+    </form>
+
+    <br>
+    <button onclick="location.href='/register'">Cancel</button>
+</body>
+</html>

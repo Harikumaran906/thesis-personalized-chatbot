@@ -2,22 +2,29 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f0f8ff;
     padding: 20px;
+    text-align: center; /* Center general layout */
 }
 
 h2 {
     color: #333;
 }
 
+/* Form box styling */
 form {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px lightgray;
     width: 300px;
-    margin: auto;
+    margin: 20px auto;
+    text-align: left;
 }
 
-input[type="text"], input[type="password"], input[type="date"], select {
+/* Inputs and dropdowns */
+input[type="text"],
+input[type="password"],
+input[type="date"],
+select {
     width: 100%;
     padding: 8px;
     margin: 5px 0 15px 0;
@@ -25,25 +32,37 @@ input[type="text"], input[type="password"], input[type="date"], select {
     border-radius: 4px;
 }
 
-input[type="submit"], button {
+/* All buttons and submit inputs */
+button,
+input[type="submit"] {
     background-color: #4CAF50;
     color: white;
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    margin: 4px;
 }
 
-input[type="submit"]:hover, button:hover {
+button:hover,
+input[type="submit"]:hover {
     background-color: #45a049;
 }
 
+/* Chat area box styling */
 #chat_area {
     background-color: white;
     padding: 20px;
     margin-top: 20px;
-    height: 400px;
-    overflow-y: scroll;
+    overflow-y: auto;
     border-radius: 8px;
     box-shadow: 0 0 10px lightgray;
+}
+
+/* Forms inside action table cells (like profile) */
+.profile-actions form {
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 4px 0;
 }

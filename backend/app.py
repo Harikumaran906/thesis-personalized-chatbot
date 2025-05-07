@@ -1,84 +1,333 @@
-from flask import Flask, render_template, request, redirect, session, url_for
-from database import init_db, add_user, get_user, get_user_by_id, save_message, get_messages, clear_chat_history, update_study_level
+import markdown
 
-from openai_srvr import get_ai_answer
-import os
+from flask import Flask, render_template, request, redirect, session, jsonify
+from database import *
+from openai_srvr import (
+    doubt_answer, guided_answer,
+    generate_quiz_qn, grade_quiz,
+    initial_tst_qn, grade_initial_tst
+)
 
-app = Flask(__name__, static_folder="../static", template_folder="templates")
-app.secret_key = os.urandom(24)
+app = Flask(__name__, static_folder='../static', template_folder='templates')
+app.secret_key = '123'
+
+def categorize_topic(title):
+    if "MACHINE LEARNING" in title or "LEARNING" in title:
+        return "Machine Learning"
+    elif "NEURAL NETWORK" in title or "ANN" in title:
+        return "Neural Networks"
+    elif "SEARCH" in title or "STATE SPACE" in title or "GAME TREE" in title:
+        return "Search Algorithms"
+    elif "KNOWLEDGE" in title or "REPRESENTATION" in title or "EXPERT" in title or "RULE" in title:
+        return "Expert Systems"
+    else:
+        return "AI Basics"
 
 @app.route('/')
-def index():
-    if 'user_id' in session:
-        history = get_messages(session['user_id'])
-        return render_template('index.html', username=session['username'], history=history, edu_level=session.get('edu_level', 'elementary'))
-    return redirect(url_for('login'))
+def home():
+    session.clear()
+    return redirect('/login')
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.get_json()
-    user_input = data['user_input']
-    edu_level = data['edu_level']
-    course = data.get('course', '')
-    ai_answer = get_ai_answer(user_input, edu_level, course)
-    save_message(session['user_id'], 'user', user_input)
-    save_message(session['user_id'], 'bot', ai_answer)
-    return {'ai_answer': ai_answer}
-
-
-
-@app.route('/clear')
-def clear():
-    clear_chat_history(session['user_id'])
-    return redirect(url_for('index'))
+@app.route('/main')
+def main():
+    if 'user_id' not in session:
+        return redirect('/login')
+    return render_template('menu.html', username=session['username'])
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        edu_level = request.form['edu_level']
         birthdate = request.form['birthdate']
-        add_user(username, password, edu_level, birthdate)
-        return redirect(url_for('login'))
+        answer_length = request.form['answer_length']
+        diagnostic_questions = initial_tst_qn()
+        return render_template('diagnostic.html',
+                               diagnostic_questions=diagnostic_questions,
+                               username=username,
+                               password=password,
+                               birthdate=birthdate,
+                               answer_length=answer_length)
     return render_template('register.html')
+
+@app.route('/diagnostic', methods=['POST'])
+def diagnostic():
+    username = request.form['username']
+    password = request.form['password']
+    birthdate = request.form['birthdate']
+    answer_length = request.form['answer_length']
+
+    questions = []
+    for i in range(1, 26):
+        q = request.form.get(f'q{i}')
+        selected = request.form.get(f'selected{i}')
+        correct = request.form.get(f'correct{i}')
+        category = request.form.get(f'category{i}')
+        if q and selected and correct and category:
+            questions.append({
+                "question": q,
+                "selected": selected,
+                "correct": correct,
+                "category": category
+            })
+
+    difficulty_map = grade_initial_tst(questions)
+    add_user(username, password, birthdate, "", "", answer_length)
+    user = get_user(username, password)
+
+    for topic_id, title in get_all_topics():
+        category = categorize_topic(title)
+        level = difficulty_map.get(category, "Beginner")
+        save_difficulty(user[0], title, level)
+
+    session['user_id'] = user[0]
+    session['username'] = user[1]
+    return redirect('/main')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = get_user(username, password)
+        user = get_user(request.form['username'], request.form['password'])
         if user:
             session['user_id'] = user[0]
             session['username'] = user[1]
-            session['edu_level'] = user[3]
-            return redirect(url_for('index'))
+            return redirect('/main')
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
-
+    return redirect('/login')
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    user_id = session['user_id']
+    user = get_user_by_id(user_id)
 
     if request.method == 'POST':
-        edu_level = request.form['edu_level']
-        update_study_level(session['user_id'], edu_level)
-        session['edu_level'] = edu_level
+        new_length = request.form['answer_length']
+        update_answer_length(user[0], new_length)
+        return redirect('/profile')
 
-    user = get_user_by_id(session['user_id'])
-    return render_template('profile.html', username=user[1], edu_level=user[3], birthdate=user[4])
+    all_topics = get_all_topics()
+    completed_scores = get_completed_topic_scores(user_id)
+    difficulty_levels = get_difficulty_levels(user_id)
 
+    score_map = {}
+    for topic_id, topic_title in all_topics:
+        all_subs = get_subtopics_by_topic(topic_id)
+        total = len(all_subs)
+        completed = sum(1 for sub in all_subs if is_subtopic_completed(user_id, sub[0]))
 
-if __name__ == "__main__":
+        score_map[topic_title] = {
+            "topic_id": topic_id,
+            "score": "Not attempted",
+            "progress": f"{completed}/{total}",
+            "difficulty": difficulty_levels.get(topic_title, "N/A")
+        }
+
+    for topic, score, _ in completed_scores:
+        if topic in score_map:
+            score_map[topic]["score"] = f"{score}/5"
+
+    return render_template('profile.html',
+                           username=user[1],
+                           birthdate=user[3],
+                           answer_length=user[6],
+                           topic_scores=score_map)
+
+@app.route('/set_current_topic/<int:topic_id>', methods=['POST'])
+def set_current_topic(topic_id):
+    if 'user_id' not in session:
+        return redirect('/login')
+    user_id = session['user_id']
+    reset_subtopics(user_id, topic_id)
+    set_current_topic(user_id, topic_id)
+    return redirect('/profile')
+
+@app.route('/chat', methods=['GET'])
+def chat_page():
+    user_id = session['user_id']
+    history = get_messages(user_id)
+    return render_template('index.html',
+                           username=session['username'],
+                           history=history,
+                           guided_response=None,
+                           current_topic=None,
+                           current_subtopic_title=None,
+                           current_subtopic_id=None,
+                           current_subtopic_index=None,
+                           total_subtopics=None,
+                           show_next_button=False,
+                           message=None)
+
+@app.route('/chat', methods=['POST'])
+def handle_chat():
+    data = request.get_json()
+    doubt = data['user_input']
+
+    user_id = session['user_id']
+    user = get_user_by_id(user_id)
+    answer_length = user[6]
+
+    conn = connect()
+    c = conn.cursor()
+    c.execute('''
+        SELECT topic, content
+        FROM messages
+        WHERE user_id = ? AND role = 'user' AND source = 'guided'
+        ORDER BY id DESC
+        LIMIT 1
+    ''', (user_id,))
+    row = c.fetchone()
+    conn.close()
+
+    topic = "General"
+    subtopic_title = None
+    ref_explanation = ""
+
+    if row:
+        topic, guided_msg = row
+        if "–" in guided_msg:
+            subtopic_title = guided_msg.split("–", 1)[1].strip()
+            ref_explanation = guided_answer(topic, subtopic_title, answer_length, 0)
+
+    prompt = f"Subtopic Explanation:\n{ref_explanation}\n\nUser's Doubt:\n{doubt}"
+    raw = doubt_answer(prompt, answer_length, topic, subtopic_title)
+    answer = markdown.markdown(raw)
+
+    save_message(user_id, 'user', doubt, topic=topic, source='doubt')
+    save_message(user_id, 'bot', answer, topic=topic, source='doubt')
+    return jsonify({'ai_answer': answer})
+
+@app.route('/start_guided', methods=['GET', 'POST'])
+def start_guided():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+    user = get_user_by_id(user_id)
+    next_sub = get_next_subtopic(user_id)
+
+    if not next_sub:
+        return render_template('index.html',
+                               username=session['username'],
+                               history=get_messages(user_id),
+                               guided_response="You've completed all available subtopics!",
+                               current_subtopic=None,
+                               current_topic=None,
+                               current_subtopic_title=None,
+                               current_subtopic_id=None,
+                               current_subtopic_index=None,
+                               total_subtopics=None,
+                               show_next_button=False,
+                               message=None)
+
+    subtopic_id, subtopic_title, topic_id, topic = next_sub
+    raw = guided_answer(topic, subtopic_title, user[6], 0)
+    explanation = markdown.markdown(raw)
+
+    save_message(user_id, 'user', f"{topic} – {subtopic_title}", topic=topic, source='guided')
+    save_message(user_id, 'bot', explanation, topic=topic, source='guided')
+
+    subtopics = get_subtopics_by_topic(topic_id)
+    tot_st = len(subtopics)
+    subtopic_num = next(i for i, s in enumerate(subtopics, 1) if s[0] == subtopic_id)
+
+    return render_template('index.html',
+                           username=session['username'],
+                           history=get_messages(user_id),
+                           guided_response=explanation,
+                           current_subtopic_id=subtopic_id,
+                           current_subtopic_title=subtopic_title,
+                           current_topic=topic,
+                           current_subtopic_index=subtopic_num,
+                           total_subtopics=tot_st,
+                           show_next_button=False,
+                           message=None)
+
+@app.route('/mark_done', methods=['POST'])
+def mark_done():
+    if 'user_id' not in session:
+        return redirect('/login')
+
+    user_id = session['user_id']
+    subtopic_id = int(request.form['subtopic_id'])
+
+    conn = connect()
+    c = conn.cursor()
+    c.execute("SELECT topic_id FROM subtopics WHERE id = ?", (subtopic_id,))
+    row = c.fetchone()
+    conn.close()
+
+    if row:
+        topic_id = row[0]
+        mark_subtopic_completed(user_id, topic_id, subtopic_id)
+
+        subtopics = get_subtopics_by_topic(topic_id)
+        completed = [s[0] for s in subtopics if is_subtopic_completed(user_id, s[0])]
+        if len(completed) == len(subtopics):
+            topic = get_topic_title(topic_id)
+            save_score(user_id, topic, 0, "Completed")
+
+    return render_template('index.html',
+                           username=session['username'],
+                           history=get_messages(user_id),
+                           guided_response="✅ Subtopic marked as completed!",
+                           current_subtopic=None,
+                           current_topic=None,
+                           current_subtopic_title=None,
+                           current_subtopic_id=None,
+                           current_subtopic_index=None,
+                           total_subtopics=None,
+                           show_next_button=True,
+                           message="✅ Subtopic marked as completed. Click below to continue.")
+
+@app.route('/quiz', methods=['GET', 'POST'])
+def quiz():
+    user_id = session['user_id']
+    user = get_user_by_id(user_id)
+
+    if request.method == 'POST':
+        topic = request.form.get('topic')
+        questions = []
+        for i in range(1, 6):
+            q = request.form.get(f'q{i}')
+            a = request.form.get(f'selected{i}')
+            c = request.form.get(f'correct{i}')
+            if q and a and c:
+                questions.append({'question': q, 'selected': a, 'correct': c})
+
+        score = grade_quiz(questions)
+        save_score(user_id, topic, score, "Completed")
+        return redirect('/profile')
+
+    topic = request.args.get('topic')
+    if not topic:
+        return redirect('/profile')
+
+    questions = generate_quiz_qn(topic)
+
+    return render_template('quiz.html',
+                           username=session['username'],
+                           quiz_questions=questions,
+                           topic=topic)
+
+@app.route('/chat_history')
+def chat_history():
+    user_id = session['user_id']
+    all_chat = get_full_chat(user_id)
+
+    all_chat_converted = []
+    for role, content, topic, source, timestamp in all_chat:
+        if role == 'bot':
+            content = markdown.markdown(content)
+        all_chat_converted.append((role, content, topic, source, timestamp))
+
+    return render_template('history.html',
+                           username=session['username'],
+                           all_messages=all_chat_converted)
+
+if __name__ == '__main__':
     init_db()
-    import os
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
-
+    app.run(debug=True)

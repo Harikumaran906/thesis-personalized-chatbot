@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz - Personalized AI Tutor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h2>Topic Quiz</h2>
+    <p>Choose the correct answers for the topic: <strong>{{ topic }}</strong></p>
+
+    {% if quiz_questions %}
+        <form method="POST" action="/quiz">
+            <input type="hidden" name="topic" value="{{ topic }}">
+
+            {% for q in quiz_questions %}
+                {% set q_index = loop.index %}
+                <div style="margin-bottom: 25px;">
+                    <p><strong>Q{{ q_index }}:</strong> {{ q.question }}</p>
+                    <input type="hidden" name="q{{ q_index }}" value="{{ q.question }}">
+                    <input type="hidden" name="correct{{ q_index }}" value="{{ q.answer }}">
+
+                    {% for option in q.options %}
+                        <label>
+                            <input type="radio" name="selected{{ q_index }}" value="{{ option }}" required>
+                            {{ option }}
+                        </label><br>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <input type="submit" value="Submit Quiz">
+        </form>
+    {% else %}
+        <p>No quiz questions available. Please complete more topics first.</p>
+    {% endif %}
+
+    <br>
+    <button onclick="location.href='/main'">Back to Menu</button>
+</body>
+</html>

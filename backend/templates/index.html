@@ -1,38 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Personalized Chatbot</title>
+    <title>Chat - Personalized AI Tutor</title>
     <link rel="stylesheet" href="/static/style.css">
     <script src="/static/script.js"></script>
 </head>
 <body>
-    <h2>Welcome to Personalized Chatbot</h2>
-    <p>
-        Welcome, {{ username }}!
+    <h2>Welcome, {{ username }}!</h2>
+
+    <div>
         <button onclick="location.href='/logout'">Logout</button>
         <button onclick="location.href='/profile'">Profile</button>
-        <button onclick="clr_chat()">Clear Chat History</button>
-    </p>
-
-    <label>Change Study Level:</label>
-    <select id="edu_level">
-        <option value="elementary" {% if edu_level == 'elementary' %}selected{% endif %}>Elementary</option>
-        <option value="secondary" {% if edu_level == 'secondary' %}selected{% endif %}>Secondary</option>
-        <option value="university" {% if edu_level == 'university' %}selected{% endif %}>University</option>
-        <option value="phd" {% if edu_level == 'phd' %}selected{% endif %}>PhD</option>
-    </select>
-
-    <label for="course">Enter Course/Topic:</label>
-    <input type="text" id="course" placeholder="e.g., Quantum Physics">
-
-
-    <div id="chat_area">
-        {% for role, content in history %}
-            <p><strong>{{ 'You' if role == 'user' else 'Bot' }}:</strong> {{ content }}</p>
-        {% endfor %}
+        <button onclick="location.href='/chat_history'">Chat History</button>
+        <button onclick="location.href='/main'">Back to Menu</button>
     </div>
 
-    <input type="text" id="user_input" placeholder="Type your message here">
-    <button onclick="send_msg()">Send</button>
+    <hr>
+
+    <h3>Guided Learning</h3>
+
+    {% if current_subtopic_id %}
+        <p><strong>Topic:</strong> {{ current_topic }}</p>
+        <p><strong>Subtopic {{ current_subtopic_index }} of {{ total_subtopics }}:</strong> {{ current_subtopic_title }}</p>
+
+        <div id="guided_response">
+            <p><strong>AI:</strong></p>
+            <div>{{ guided_response | safe }}</div>
+        </div>
+
+        <form method="POST" action="/mark_done">
+            <input type="hidden" name="subtopic_id" value="{{ current_subtopic_id }}">
+            <button type="submit">Mark this subtopic as done</button>
+        </form>
+
+    {% elif message %}
+        <p style="color: green;"><strong>{{ message }}</strong></p>
+        {% if show_next_button %}
+            <form method="POST" action="/start_guided">
+                <button type="submit">Load Next Subtopic</button>
+            </form>
+        {% endif %}
+    {% else %}
+        <p>No guided topic active. Click below to begin:</p>
+        <form method="POST" action="/start_guided">
+            <button type="submit">Start Next Topic</button>
+        </form>
+    {% endif %}
+
+    <hr>
+
+    <h3>Ask a Doubt</h3>
+    <form id="doubt_form">
+        <label for="user_input">Enter your question:</label><br>
+        <input type="text" id="user_input" name="user_input" placeholder="Type your question here..." required>
+        <button type="submit">Ask</button>
+    </form>
+
+    <div id="chat_area" style="margin-top: 15px;"></div>
+
+    <script>
+        document.getElementById('doubt_form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('user_input').value;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_input: input })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const area = document.getElementById('chat_area');
+                area.innerHTML = ''; // clear old doubt chats
+                area.innerHTML += `<p><strong>You:</strong> ${input}</p>`;
+                area.innerHTML += `<p><strong>Bot:</strong></p><div>${data.ai_answer}</div>`;
+                document.getElementById('user_input').value = '';
+            });
+        });
+    </script>
 </body>
 </html>

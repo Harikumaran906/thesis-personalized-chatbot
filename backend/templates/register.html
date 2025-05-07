@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Register - Personalized Chatbot</title>
+    <title>Register - Personalized AI Tutor</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h2>Create Your Account</h2>
-    <form method="POST">
+    <h2>👤 Register</h2>
+    <form method="POST" action="/register">
         <label>Username:</label><br>
-        <input type="text" name="username" required><br>
+        <input type="text" name="username" required><br><br>
 
         <label>Password:</label><br>
-        <input type="password" name="password" required><br>
-
-        <label>Study Level:</label><br>
-        <select name="edu_level" required>
-            <option value="elementary">Elementary</option>
-            <option value="secondary">Secondary</option>
-            <option value="university">University</option>
-            <option value="phd">PhD</option>
-        </select><br>
+        <input type="password" name="password" required><br><br>
 
         <label>Birthdate:</label><br>
         <input type="date" name="birthdate" required><br><br>
 
-        <input type="submit" value="Register">
+        <label>Preferred Explanation Length:</label><br>
+        <select name="answer_length">
+            <option value="short">Short</option>
+            <option value="medium">Medium</option>
+            <option value="detailed">Detailed</option>
+        </select><br><br>
+
+        <input type="submit" value="Start Diagnostic Test">
     </form>
-    <p>Already have an account? <a href="/login">Login here</a></p>
+    <br>
+    <button onclick="location.href='/login'">Back to Login</button>
 </body>
 </html>
