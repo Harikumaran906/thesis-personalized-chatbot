@@ -1,9 +1,8 @@
-import sqlite3
-from database import init_db
+from backend.database import connect, init_db
+
 init_db()
-
-
-DB_PATH = "datas.sqlite3"
+conn = connect()
+cursor = conn.cursor()
 
 topics_data = {
     "DEFINITION OF ARTIFICIAL INTELLIGENCE": [
@@ -59,18 +58,17 @@ topics_data = {
     ]
 }
 
-conn = sqlite3.connect(DB_PATH)
-cursor = conn.cursor()
-
 cursor.execute("DELETE FROM topics")
 cursor.execute("DELETE FROM subtopics")
 
 for topic_title, subtopics in topics_data.items():
-    cursor.execute("INSERT INTO topics (title) VALUES (?)", (topic_title,))
-    topic_id = cursor.lastrowid
+    cursor.execute("INSERT INTO topics (title) VALUES (%s)", (topic_title,))
+    topic_id = cursor.fetchone()[0] if cursor.statusmessage.startswith("INSERT") else None
+    cursor.execute("SELECT id FROM topics WHERE title = %s", (topic_title,))
+    topic_id = cursor.fetchone()[0]
     for sub in subtopics:
-        cursor.execute("INSERT INTO subtopics (topic_id, title) VALUES (?, ?)", (topic_id, sub))
+        cursor.execute("INSERT INTO subtopics (topic_id, title) VALUES (%s, %s)", (topic_id, sub))
 
 conn.commit()
 conn.close()
-print("Database populated with AI course topics and subtopics.")
+print("PostgreSQL populated with AI course topics and subtopics.")
