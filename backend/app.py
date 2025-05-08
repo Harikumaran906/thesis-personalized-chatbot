@@ -1,8 +1,8 @@
 import markdown
 
 from flask import Flask, render_template, request, redirect, session, jsonify
-from database import *
-from openai_srvr import (
+from backend.database import *
+from backend.openai_srvr import (
     doubt_answer, guided_answer,
     generate_quiz_qn, grade_quiz,
     initial_tst_qn, grade_initial_tst
