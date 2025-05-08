@@ -277,7 +277,7 @@ def mark_done():
     return render_template('index.html',
                            username=session['username'],
                            history=get_messages(user_id),
-                           guided_response="✅ Subtopic marked as completed!",
+                           guided_response="Subtopic marked as completed!",
                            current_subtopic=None,
                            current_topic=None,
                            current_subtopic_title=None,
@@ -285,7 +285,7 @@ def mark_done():
                            current_subtopic_index=None,
                            total_subtopics=None,
                            show_next_button=True,
-                           message="✅ Subtopic marked as completed. Click below to continue.")
+                           message="Subtopic marked as completed. Click below to continue.")
 
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
