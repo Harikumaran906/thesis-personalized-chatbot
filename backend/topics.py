@@ -1,5 +1,5 @@
 import sqlite3
-from backend.database import init_db
+from database import init_db
 init_db()
 
 
