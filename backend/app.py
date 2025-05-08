@@ -329,5 +329,4 @@ def chat_history():
                            all_messages=all_chat_converted)
 
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
