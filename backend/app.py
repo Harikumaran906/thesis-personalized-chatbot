@@ -115,7 +115,7 @@ def profile():
 
     score_map = {}
     for topic_id, topic_title in all_topics:
-        all_subs = get_subtopics_by_topic(topic_id)
+        all_subs = get_subtopics_by_topic(topic_id) or []
         total = len(all_subs)
         completed = sum(1 for sub in all_subs if is_subtopic_completed(user_id, sub[0]))
 
