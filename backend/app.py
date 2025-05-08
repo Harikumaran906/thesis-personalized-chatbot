@@ -34,6 +34,7 @@ def main():
         return redirect('/login')
     return render_template('menu.html', username=session['username'])
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -41,6 +42,11 @@ def register():
         password = request.form['password']
         birthdate = request.form['birthdate']
         answer_length = request.form['answer_length']
+
+        # ✅ Check for existing username
+        if get_user(username, password):
+            return render_template('register.html', error="❌ Username already exists. Choose a different one.")
+
         diagnostic_questions = initial_tst_qn()
         return render_template('diagnostic.html',
                                diagnostic_questions=diagnostic_questions,
@@ -48,7 +54,9 @@ def register():
                                password=password,
                                birthdate=birthdate,
                                answer_length=answer_length)
+
     return render_template('register.html')
+
 
 @app.route('/diagnostic', methods=['POST'])
 def diagnostic():
@@ -71,10 +79,13 @@ def diagnostic():
                 "category": category
             })
 
-    difficulty_map = grade_initial_tst(questions)
-    add_user(username, password, birthdate, "", "", answer_length)
+    success = add_user(username, password, birthdate, "", "", answer_length)
+    if not success:
+        return render_template('register.html', error="Username already exists. Choose a different one.")
+
     user = get_user(username, password)
 
+    difficulty_map = grade_initial_tst(questions)
     for topic_id, title in get_all_topics():
         category = categorize_topic(title)
         level = difficulty_map.get(category, "Beginner")
