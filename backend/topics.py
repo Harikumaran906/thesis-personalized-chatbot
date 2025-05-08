@@ -1,4 +1,4 @@
-from backend.database import connect, init_db
+from database import connect, init_db
 
 init_db()
 conn = connect()
