@@ -1,5 +1,4 @@
 import markdown
-
 from flask import Flask, render_template, request, redirect, session, jsonify
 from backend.database import *
 from backend.openai_srvr import (
@@ -28,13 +27,6 @@ def home():
     session.clear()
     return redirect('/login')
 
-@app.route('/main')
-def main():
-    if 'user_id' not in session:
-        return redirect('/login')
-    return render_template('menu.html', username=session['username'])
-
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -43,7 +35,6 @@ def register():
         birthdate = request.form['birthdate']
         answer_length = request.form['answer_length']
 
-        # ✅ Check for existing username
         if get_user(username, password):
             return render_template('register.html', error="❌ Username already exists. Choose a different one.")
 
@@ -54,9 +45,7 @@ def register():
                                password=password,
                                birthdate=birthdate,
                                answer_length=answer_length)
-
     return render_template('register.html')
-
 
 @app.route('/diagnostic', methods=['POST'])
 def diagnostic():
@@ -79,13 +68,10 @@ def diagnostic():
                 "category": category
             })
 
-    success = add_user(username, password, birthdate, "", "", answer_length)
-    if not success:
-        return render_template('register.html', error="Username already exists. Choose a different one.")
-
+    difficulty_map = grade_initial_tst(questions)
+    add_user(username, password, birthdate, "", "", answer_length)
     user = get_user(username, password)
 
-    difficulty_map = grade_initial_tst(questions)
     for topic_id, title in get_all_topics():
         category = categorize_topic(title)
         level = difficulty_map.get(category, "Beginner")
@@ -109,6 +95,12 @@ def login():
 def logout():
     session.clear()
     return redirect('/login')
+
+@app.route('/main')
+def main():
+    if 'user_id' not in session:
+        return redirect('/login')
+    return render_template('menu.html', username=session['username'])
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -187,7 +179,7 @@ def handle_chat():
     c.execute('''
         SELECT topic, content
         FROM messages
-        WHERE user_id = ? AND role = 'user' AND source = 'guided'
+        WHERE user_id = %s AND role = 'user' AND source = 'guided'
         ORDER BY id DESC
         LIMIT 1
     ''', (user_id,))
@@ -268,7 +260,7 @@ def mark_done():
 
     conn = connect()
     c = conn.cursor()
-    c.execute("SELECT topic_id FROM subtopics WHERE id = ?", (subtopic_id,))
+    c.execute("SELECT topic_id FROM subtopics WHERE id = %s", (subtopic_id,))
     row = c.fetchone()
     conn.close()
 

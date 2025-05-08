@@ -97,18 +97,12 @@ def init_db():
 def add_user(username, password, birthdate, weak_topics, strong_topics, answer_length):
     conn = connect()
     c = conn.cursor()
-    try:
-        c.execute('''
-            INSERT INTO users (username, password, birthdate, weak_topics, strong_topics, answer_length)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        ''', (username, password, birthdate, weak_topics, strong_topics, answer_length))
-        conn.commit()
-        return True
-    except psycopg2.errors.UniqueViolation:
-        conn.rollback()
-        return False
-    finally:
-        conn.close()
+    c.execute('''
+        INSERT INTO users (username, password, birthdate, weak_topics, strong_topics, answer_length)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    ''', (username, password, birthdate, weak_topics, strong_topics, answer_length))
+    conn.commit()
+    conn.close()
 
 def get_user(username, password):
     conn = connect()
