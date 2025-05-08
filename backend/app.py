@@ -8,19 +8,19 @@ from backend.openai_srvr import (
 )
 
 app = Flask(__name__, static_folder='../static', template_folder='templates')
-app.secret_key = '123'
+app.secret_key = 'Kumaran@123'
 
 def categorize_topic(title):
-    if "MACHINE LEARNING" in title or "LEARNING" in title:
-        return "Machine Learning"
-    elif "NEURAL NETWORK" in title or "ANN" in title:
-        return "Neural Networks"
-    elif "SEARCH" in title or "STATE SPACE" in title or "GAME TREE" in title:
-        return "Search Algorithms"
-    elif "KNOWLEDGE" in title or "REPRESENTATION" in title or "EXPERT" in title or "RULE" in title:
-        return "Expert Systems"
-    else:
+    if "ARTIFICIAL INTELLIGENCE" in title:
         return "AI Basics"
+    elif "MACHINE LEARNING" in title:
+        return "Machine Learning"
+    elif "NEURAL NETWORK" in title:
+        return "Neural Networks"
+    elif "SEARCH" in title or "STATE SPACE" in title:
+        return "Search Algorithms"
+    elif "KNOWLEDGE REPRESENTATION" in title:
+        return "Expert Systems"
 
 @app.route('/')
 def home():
@@ -36,7 +36,7 @@ def register():
         answer_length = request.form['answer_length']
 
         if get_user(username, password):
-            return render_template('register.html', error="❌ Username already exists. Choose a different one.")
+            return render_template('register.html', error="Username already exists. Choose a different one.")
 
         diagnostic_questions = initial_tst_qn()
         return render_template('diagnostic.html',

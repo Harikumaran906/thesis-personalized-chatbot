@@ -42,7 +42,7 @@ def initial_tst_qn():
     questions = []
 
     for category in categories:
-        prompt = f"Generate 5 beginner-level multiple-choice questions (MCQs) to assess basic understanding of {category} in an AI course. Each question must have 4 options labeled A-D and end with 'Answer: <letter>'.\n\nFormat:\nQ1: ...\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: <letter>"
+        prompt = f"Generate 5 beginner-level multiple-choice questions to categorize the basic understanding of {category} in an AI course. Each question must have 4 options labeled A-D and end with 'Answer: <letter>'.\n\nFormat:\nQ1: ...\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: <letter>"
 
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -105,7 +105,7 @@ def grade_initial_tst(questions):
     return difficulty_map
 
 def generate_quiz_qn(topic):
-    prompt = f"Generate 5 multiple-choice questions (MCQs) to test understanding of the topic '{topic}' in an AI course. For each question, provide 4 options (A to D) and indicate the correct option with 'Answer: <letter>'. Format:\nQ1: ...\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: <letter>\n\nRepeat for 5 questions."
+    prompt = f"Generate 5 multiple-choice questions to test understanding of the topic '{topic}' in an AI course. For each question, provide 4 options (A to D) and indicate the correct option with 'Answer: <letter>'. Format:\nQ1: ...\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: <letter>\n\nRepeat for 5 questions."
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -138,7 +138,7 @@ def generate_quiz_qn(topic):
     return questions[:5]
 
 def grade_quiz(questions_and_user_answers):
-    prompt = "You are a university AI tutor. Grade this student's MCQ quiz. Each question has 4 choices (A–D). Compare the user's selected answer with the correct one and give a total score from 0 to 5.\n\n"
+    prompt = "You are a university AI teacher. Grade this student's MCQ quiz. Each question has 4 choices (A–D). Compare the user's selected answer with the correct one and give a total score from 0 to 5.\n\n"
 
     for i, qa in enumerate(questions_and_user_answers, 1):
         prompt += f"Q{i}: {qa['question']}\nCorrect Answer: {qa['correct']}\nStudent Answer: {qa['selected']}\n\n"
