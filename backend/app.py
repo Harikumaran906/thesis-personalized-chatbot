@@ -304,6 +304,13 @@ def quiz():
 
         score = grade_quiz(questions)
         save_score(user_id, topic, score, "Completed")
+        if score <= 2:
+            level = "Beginner"
+        elif score == 3:
+            level = "Intermediate"
+        else:
+            level = "Advanced"
+        save_difficulty(user_id, topic, level)
         return redirect('/profile')
 
     topic = request.args.get('topic')
