@@ -311,3 +311,15 @@ def set_current_topic(user_id, topic_id):
     ''', (user_id, topic_id))
     conn.commit()
     conn.close()
+
+def get_completed_subtopic_ids(user_id):
+    conn = connect()
+    c = conn.cursor()
+    c.execute('''
+        SELECT subtopic_id
+        FROM user_progress
+        WHERE user_id = %s AND status = 'completed'
+    ''', (user_id,))
+    rows = c.fetchall()
+    conn.close()
+    return [row[0] for row in rows]

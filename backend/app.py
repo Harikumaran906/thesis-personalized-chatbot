@@ -112,12 +112,13 @@ def profile():
     all_topics = get_all_topics()
     completed_scores = get_completed_topic_scores(user_id)
     difficulty_levels = get_difficulty_levels(user_id)
+    completed_ids = set(get_completed_subtopic_ids(user_id))
 
     score_map = {}
     for topic_id, topic_title in all_topics:
         all_subs = get_subtopics_by_topic(topic_id) or []
         total = len(all_subs)
-        completed = sum(1 for sub in all_subs if is_subtopic_completed(user_id, sub[0]))
+        completed = sum(1 for sub in all_subs if sub[0] in completed_ids)
 
         score_map[topic_title] = {
             "topic_id": topic_id,
