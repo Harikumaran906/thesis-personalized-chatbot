@@ -62,12 +62,11 @@ cursor.execute("DELETE FROM topics")
 cursor.execute("DELETE FROM subtopics")
 
 for topic_title, subtopics in topics_data.items():
-    cursor.execute("INSERT INTO topics (title) VALUES (%s)", (topic_title,))
-    topic_id = cursor.fetchone()[0] if cursor.statusmessage.startswith("INSERT") else None
-    cursor.execute("SELECT id FROM topics WHERE title = %s", (topic_title,))
+    cursor.execute("INSERT INTO topics (title) VALUES (%s) RETURNING id", (topic_title,))
     topic_id = cursor.fetchone()[0]
     for sub in subtopics:
         cursor.execute("INSERT INTO subtopics (topic_id, title) VALUES (%s, %s)", (topic_id, sub))
+
 
 conn.commit()
 conn.close()
