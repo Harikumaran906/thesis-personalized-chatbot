@@ -141,13 +141,14 @@ def profile():
                            topic_scores=score_map)
 
 @app.route('/set_current_topic/<int:topic_id>', methods=['POST'])
-def set_current_topic(topic_id):
+def handle_set_current_topic(topic_id):
     if 'user_id' not in session:
         return redirect('/login')
     user_id = session['user_id']
     reset_subtopics(user_id, topic_id)
     set_current_topic(user_id, topic_id)
     return redirect('/profile')
+
 
 @app.route('/chat', methods=['GET'])
 def chat_page():
