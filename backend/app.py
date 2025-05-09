@@ -152,11 +152,11 @@ def handle_set_current_topic(topic_id):
 
 @app.route('/chat', methods=['GET'])
 def chat_page():
-    user_id = session['user_id']
-    history = get_messages(user_id)
+    if 'user_id' not in session:
+        return redirect('/login')
+
     return render_template('index.html',
                            username=session['username'],
-                           history=history,
                            guided_response=None,
                            current_topic=None,
                            current_subtopic_title=None,
