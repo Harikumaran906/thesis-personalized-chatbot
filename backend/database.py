@@ -22,8 +22,6 @@ def init_db():
             username TEXT UNIQUE,
             password TEXT,
             birthdate TEXT,
-            weak_topics TEXT,
-            strong_topics TEXT,
             answer_length TEXT
         )
     ''')
@@ -94,13 +92,13 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_user(username, password, birthdate, weak_topics, strong_topics, answer_length):
+def add_user(username, password, birthdate, answer_length):
     conn = connect()
     c = conn.cursor()
     c.execute('''
-        INSERT INTO users (username, password, birthdate, weak_topics, strong_topics, answer_length)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    ''', (username, password, birthdate, weak_topics, strong_topics, answer_length))
+        INSERT INTO users (username, password, birthdate, answer_length)
+        VALUES (%s, %s, %s, %s)
+    ''', (username, password, birthdate, answer_length))
     conn.commit()
     conn.close()
 
@@ -136,14 +134,6 @@ def save_message(user_id, role, content, topic=None, source=None, is_confused=0)
     ''', (user_id, role, content, topic, is_confused, source))
     conn.commit()
     conn.close()
-
-def get_messages(user_id):
-    conn = connect()
-    c = conn.cursor()
-    c.execute("SELECT role, content FROM messages WHERE user_id = %s ORDER BY id", (user_id,))
-    messages = c.fetchall()
-    conn.close()
-    return messages
 
 def get_full_chat(user_id):
     conn = connect()
