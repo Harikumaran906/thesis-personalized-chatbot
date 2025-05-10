@@ -69,7 +69,7 @@ def diagnostic():
             })
 
     difficulty_map = grade_initial_tst(questions)
-    add_user(username, password, birthdate, "", "", answer_length)
+    add_user(username, password, birthdate, answer_length)
     user = get_user(username, password)
 
     for topic_id, title in get_all_topics():
@@ -195,7 +195,7 @@ def handle_chat():
         topic, guided_msg = row
         if "–" in guided_msg:
             subtopic_title = guided_msg.split("–", 1)[1].strip()
-            ref_explanation = guided_answer(topic, subtopic_title, answer_length, 0)
+            ref_explanation = guided_answer(topic, subtopic_title, answer_length)
 
     prompt = f"Subtopic Explanation:\n{ref_explanation}\n\nUser's Doubt:\n{doubt}"
     raw = doubt_answer(prompt, answer_length, topic, subtopic_title)
@@ -288,7 +288,6 @@ def mark_done():
 @app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
     user_id = session['user_id']
-    user = get_user_by_id(user_id)
 
     if request.method == 'POST':
         topic = request.form.get('topic')
