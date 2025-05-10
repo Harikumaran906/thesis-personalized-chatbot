@@ -9,7 +9,7 @@ def doubt_answer(doubt, answer_length="short", topic="General", subtopic_title=N
     scope = f"The topic is {topic}."
     if subtopic_title:
         scope += f" The subtopic is {subtopic_title}."
-    prompt = f"{scope} Now explain this question in a {answer_length} way using both theory and example:\n{doubt}"
+    prompt = f"{scope} Now explain this doubt in a {answer_length} way using both theory and example:\n{doubt}"
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -22,20 +22,20 @@ def doubt_answer(doubt, answer_length="short", topic="General", subtopic_title=N
     )
     return response.choices[0].message.content.strip()
 
-def guided_answer(topic, subtopic_title, answer_length="short", user_score=0):
-    difficulty = "simple" if user_score <= 1 else "detailed" if user_score == 2 else "advanced"
-    prompt = f"Explain the following subtopic of {topic} in a {difficulty} and {answer_length} way. Include theory and example:\n{subtopic_title}"
+def guided_answer(topic, subtopic_title, answer_length="short"):
+    base_prompt = f"Explain the subtopic '{subtopic_title}' from the topic '{topic}' in a {answer_length} way with both theory and example."
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are an expert tutor for Fundamentals of AI."},
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": "You are an educational AI tutor."},
+            {"role": "user", "content": base_prompt}
         ],
-        temperature=0.6,
+        temperature=0.7,
         max_tokens=500
     )
     return response.choices[0].message.content.strip()
+
 
 def initial_tst_qn():
     categories = ["AI Basics", "Machine Learning", "Neural Networks", "Search Algorithms", "Expert Systems"]

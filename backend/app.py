@@ -217,7 +217,6 @@ def start_guided():
     if not next_sub:
         return render_template('index.html',
                                username=session['username'],
-                               history=get_messages(user_id),
                                guided_response="You've completed all available subtopics!",
                                current_subtopic=None,
                                current_topic=None,
@@ -229,7 +228,7 @@ def start_guided():
                                message=None)
 
     subtopic_id, subtopic_title, topic_id, topic = next_sub
-    raw = guided_answer(topic, subtopic_title, user[6], 0)
+    raw = guided_answer(topic, subtopic_title, user[6])
     explanation = markdown.markdown(raw)
 
     save_message(user_id, 'user', f"{topic} – {subtopic_title}", topic=topic, source='guided')
@@ -241,7 +240,6 @@ def start_guided():
 
     return render_template('index.html',
                            username=session['username'],
-                           history=get_messages(user_id),
                            guided_response=explanation,
                            current_subtopic_id=subtopic_id,
                            current_subtopic_title=subtopic_title,
@@ -277,7 +275,6 @@ def mark_done():
 
     return render_template('index.html',
                            username=session['username'],
-                           history=get_messages(user_id),
                            guided_response="Subtopic marked as completed!",
                            current_subtopic=None,
                            current_topic=None,
