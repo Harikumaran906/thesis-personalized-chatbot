@@ -206,22 +206,28 @@ def get_subtopics_by_topic(topic_id):
 def get_next_subtopic(user_id):
     conn = connect()
     c = conn.cursor()
+    c.execute('SELECT current_topic_id FROM user_settings WHERE user_id = %s', (user_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return None
+    current_topic_id = row[0]
     c.execute('''
         SELECT s.id, s.title, t.id, t.title
         FROM subtopics s
         JOIN topics t ON s.topic_id = t.id
-        JOIN user_selected_topics ust ON t.id = ust.topic_id
-        WHERE ust.user_id = %s
+        WHERE s.topic_id = %s
           AND NOT EXISTS (
               SELECT 1 FROM user_progress
               WHERE user_id = %s AND subtopic_id = s.id AND status = 'completed'
           )
         ORDER BY s.id ASC
         LIMIT 1
-    ''', (user_id, user_id))
+    ''', (current_topic_id, user_id))
     result = c.fetchone()
     conn.close()
     return result
+
 
 def mark_subtopic_completed(user_id, topic_id, subtopic_id):
     conn = connect()
@@ -253,20 +259,7 @@ def get_topic_title(topic_id):
     conn.close()
     return row[0] if row else None
 
-def get_first_subtopic(topic_id):
-    conn = connect()
-    c = conn.cursor()
-    c.execute('''
-        SELECT s.id, s.title, t.id, t.title
-        FROM subtopics s
-        JOIN topics t ON s.topic_id = t.id
-        WHERE t.id = %s
-        ORDER BY s.id ASC
-        LIMIT 1
-    ''', (topic_id,))
-    result = c.fetchone()
-    conn.close()
-    return result
+
 
 def save_difficulty(user_id, topic, level):
     conn = connect()

@@ -72,7 +72,6 @@ def diagnostic():
             level = difficulty_map.get(category, "Beginner")
             save_difficulty(user_id, title, level)
 
-        session['user_id'] = user_id
         session['username'] = user[1]
         return redirect('/main')
     username = request.form['username']
