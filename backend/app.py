@@ -40,6 +40,7 @@ def register():
         return redirect('/main')
     return render_template('register.html')
 
+
 @app.route('/diagnostic', methods=['POST'])
 def diagnostic():
     if 'q1' in request.form:
@@ -379,28 +380,38 @@ def select_topics():
     if 'user_id' not in session:
         return redirect('/login')
     user_id = session['user_id']
+    all_categories = ['AI Basics', 'Machine Learning', 'Neural Networks', 'Search Algorithms', 'Expert Systems']
     if request.method == 'POST':
         selected_categories = request.form.getlist('categories')
+        previously_selected_ids = get_pref_topic(user_id)
         all_topics = get_all_topics()
-        topic_ids = []
+        prev_titles = [title for tid, title in all_topics if tid in previously_selected_ids]
+        previously_selected_categories = set(categorize_topic(title) for title in prev_titles)
+        new_categories = [cat for cat in selected_categories if cat not in previously_selected_categories]
+        new_topic_ids = []
         for tid, title in all_topics:
-            category = categorize_topic(title)
-            if category in selected_categories:
-                topic_ids.append(tid)
-
-        save_pref_topics(user_id, topic_ids)
+            if categorize_topic(title) in new_categories:
+                new_topic_ids.append(tid)
+        save_pref_topics(user_id, previously_selected_ids + new_topic_ids)
         user = get_user_by_id(user_id)
-        selected_titles = [title for tid, title in all_topics if tid in topic_ids]
-        selected_categories = set(categorize_topic(title) for title in selected_titles)
         all_questions = initial_tst_qn()
-        questions = [q for q in all_questions if q["category"] in selected_categories][:25]
+        questions = [q for q in all_questions if q["category"] in new_categories][:25]
         return render_template('diagnostic.html',
                                diagnostic_questions=questions,
                                username=user[1],
                                password=user[2],
                                birthdate=user[3],
                                answer_length=user[4])
-    return render_template('pref_topic.html', username=session['username'])
+    all_topics = get_all_topics()
+    selected_topic_ids = get_pref_topic(user_id)
+    selected_titles = [title for tid, title in all_topics if tid in selected_topic_ids]
+    selected_categories = list(set(categorize_topic(title) for title in selected_titles))
+
+    return render_template('pref_topic.html',
+                           username=session['username'],
+                           all_categories=all_categories,
+                           selected_categories=selected_categories)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

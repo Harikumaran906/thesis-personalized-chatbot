@@ -3,20 +3,49 @@
 <head>
     <title>Select Preferred Categories</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .category-container {
+            display: flex;
+            gap: 50px;
+        }
+        .category-list {
+            width: 45%;
+        }
+        .category-list h4 {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <h2>Welcome, {{ username }}!</h2>
-    <h3>Select the AI categories you want to learn</h3>
+    <h3>Select additional AI categories you want to learn</h3>
 
     <form method="POST">
-        <label><input type="checkbox" name="categories" value="AI Basics"> AI Basics</label><br>
-        <label><input type="checkbox" name="categories" value="Machine Learning"> Machine Learning</label><br>
-        <label><input type="checkbox" name="categories" value="Neural Networks"> Neural Networks</label><br>
-        <label><input type="checkbox" name="categories" value="Search Algorithms"> Search Algorithms</label><br>
-        <label><input type="checkbox" name="categories" value="Expert Systems"> Expert Systems</label><br>
+        <div class="category-container">
+            <!-- Unselected categories (as checkboxes) -->
+            <div class="category-list">
+                <h4>Available Categories</h4>
+                {% for category in all_categories %}
+                    {% if category not in selected_categories %}
+                        <label>
+                            <input type="checkbox" name="categories" value="{{ category }}">
+                            {{ category }}
+                        </label><br>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Already selected categories -->
+            <div class="category-list">
+                <h4>Already Selected</h4>
+                {% for category in selected_categories %}
+                    <p>{{ category }}</p>
+                {% endfor %}
+            </div>
+        </div>
 
         <br>
-        <input type="submit" value="Start Quiz to Personalize Learning">
+        <input type="submit" value="Start Quiz for Newly Selected Categories">
     </form>
 </body>
 </html>
