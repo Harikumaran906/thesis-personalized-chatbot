@@ -89,6 +89,14 @@ def init_db():
         )
     ''')
 
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS user_selected_topics (
+            user_id INTEGER,
+            topic_id INTEGER,
+            PRIMARY KEY (user_id, topic_id)
+        )
+    ''')
+
     conn.commit()
     conn.close()
 
@@ -202,13 +210,15 @@ def get_next_subtopic(user_id):
         SELECT s.id, s.title, t.id, t.title
         FROM subtopics s
         JOIN topics t ON s.topic_id = t.id
-        WHERE NOT EXISTS (
-            SELECT 1 FROM user_progress
-            WHERE user_id = %s AND subtopic_id = s.id AND status = 'completed'
-        )
+        JOIN user_selected_topics ust ON t.id = ust.topic_id
+        WHERE ust.user_id = %s
+          AND NOT EXISTS (
+              SELECT 1 FROM user_progress
+              WHERE user_id = %s AND subtopic_id = s.id AND status = 'completed'
+          )
         ORDER BY s.id ASC
         LIMIT 1
-    ''', (user_id,))
+    ''', (user_id, user_id))
     result = c.fetchone()
     conn.close()
     return result
@@ -310,6 +320,25 @@ def get_completed_subtopic_ids(user_id):
         FROM user_progress
         WHERE user_id = %s AND status = 'completed'
     ''', (user_id,))
+    rows = c.fetchall()
+    conn.close()
+    return [row[0] for row in rows]
+
+def save_pref_topics(user_id, topic_ids):
+    conn = connect()
+    c = conn.cursor()
+    # Clear previous selections
+    c.execute("DELETE FROM user_selected_topics WHERE user_id = %s", (user_id,))
+    # Insert new selections
+    for topic_id in topic_ids:
+        c.execute("INSERT INTO user_selected_topics (user_id, topic_id) VALUES (%s, %s)", (user_id, topic_id))
+    conn.commit()
+    conn.close()
+
+def get_pref_topic(user_id):
+    conn = connect()
+    c = conn.cursor()
+    c.execute("SELECT topic_id FROM user_selected_topics WHERE user_id = %s", (user_id,))
     rows = c.fetchall()
     conn.close()
     return [row[0] for row in rows]

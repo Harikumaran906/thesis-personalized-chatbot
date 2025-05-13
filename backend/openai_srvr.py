@@ -90,7 +90,6 @@ def grade_initial_tst(questions):
         if q["selected"] == q["correct"]:
             category_scores[cat] += 1
         counts[cat] += 1
-
     difficulty_map = {}
     for cat in category_scores:
         correct = category_scores[cat]
@@ -101,12 +100,21 @@ def grade_initial_tst(questions):
         else:
             level = "Beginner"
         difficulty_map[cat] = level
-
     return difficulty_map
 
-def generate_quiz_qn(topic):
-    prompt = f"Generate 5 multiple-choice questions to test understanding of the topic '{topic}' in an AI course. For each question, provide 4 options (A to D) and indicate the correct option with 'Answer: <letter>'. Format:\nQ1: ...\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: <letter>\n\nRepeat for 5 questions."
-
+def generate_quiz_qn(topic, explanation_text=None):
+    context = f"Based on the topic '{topic}' in an AI course,"
+    if explanation_text:
+        context += f" and the following explanation:\n\n{explanation_text}\n\n"
+    prompt = context + """generate 5 multiple-choice questions to test the student's understanding.
+Each question must have 4 options labeled A-D and end with 'Answer: <letter>'.
+Format:
+Q1: ...
+A) ...
+B) ...
+C) ...
+D) ...
+Answer: <letter>"""
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -116,7 +124,6 @@ def generate_quiz_qn(topic):
         temperature=0.5,
         max_tokens=800
     )
-
     lines = response.choices[0].message.content.strip().split('\n')
     questions = []
     q = {}
@@ -134,7 +141,6 @@ def generate_quiz_qn(topic):
             q["answer"] = line.split(":", 1)[1].strip()
     if q:
         questions.append(q)
-
     return questions[:5]
 
 def grade_quiz(questions_and_user_answers):
