@@ -340,8 +340,6 @@ def quiz():
     topic = request.args.get('topic')
     if not topic:
         return redirect('/profile')
-
-    # 🆕 Fetch all guided explanations from messages
     conn = connect()
     c = conn.cursor()
     c.execute('''
@@ -391,10 +389,18 @@ def select_topics():
                 topic_ids.append(tid)
 
         save_pref_topics(user_id, topic_ids)
-        return redirect('/diagnostic')
+        user = get_user_by_id(user_id)
+        selected_titles = [title for tid, title in all_topics if tid in topic_ids]
+        selected_categories = set(categorize_topic(title) for title in selected_titles)
+        all_questions = initial_tst_qn()
+        questions = [q for q in all_questions if q["category"] in selected_categories][:25]
+        return render_template('diagnostic.html',
+                               diagnostic_questions=questions,
+                               username=user[1],
+                               password=user[2],
+                               birthdate=user[3],
+                               answer_length=user[4])
     return render_template('pref_topic.html', username=session['username'])
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
