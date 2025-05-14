@@ -43,13 +43,10 @@ def register():
 
 @app.route('/diagnostic', methods=['POST'])
 def diagnostic():
+    user_id = session['user_id']
+    user = get_user_by_id(user_id)
+
     if 'q1' in request.form:
-        username = request.form['username']
-        password = request.form['password']
-        birthdate = request.form['birthdate']
-        answer_length = request.form['answer_length']
-        user = get_user(username, password)
-        user_id = user[0]
         questions = []
         for i in range(1, 26):
             q = request.form.get(f'q{i}')
@@ -63,6 +60,7 @@ def diagnostic():
                     "correct": correct,
                     "category": category
                 })
+
         difficulty_map = grade_initial_tst(questions)
         all_topics = dict(get_all_topics())
         selected_ids = get_pref_topic(user_id)
@@ -74,13 +72,7 @@ def diagnostic():
 
         session['username'] = user[1]
         return redirect('/main')
-    username = request.form['username']
-    password = request.form['password']
-    birthdate = request.form['birthdate']
-    answer_length = request.form['answer_length']
-    add_user(username, password, birthdate, answer_length)
-    user = get_user(username, password)
-    user_id = user[0]
+
     selected_ids = get_pref_topic(user_id)
     all_topics = dict(get_all_topics())
     selected_titles = [all_topics[tid] for tid in selected_ids if tid in all_topics]
@@ -92,12 +84,10 @@ def diagnostic():
 
     all_questions = initial_tst_qn()
     questions = [q for q in all_questions if q["category"] in selected_categories][:25]
+
     return render_template('diagnostic.html',
                            diagnostic_questions=questions,
-                           username=username,
-                           password=password,
-                           birthdate=birthdate,
-                           answer_length=answer_length)
+                           username=user[1])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
