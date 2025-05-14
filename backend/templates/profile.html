@@ -39,7 +39,7 @@
             <td>
                 <div class="profile-actions">
                     <form method="POST" action="/set_current_topic/{{ data.topic_id }}">
-                        <button type="submit">Make Current Topic</button>
+                        <button type="submit">Make this as Current Topic</button>
                     </form>
                     {% if data.progress.split('/')[0] == data.progress.split('/')[1] and data.progress != '0/0' %}
                         <form method="GET" action="/quiz">
