@@ -259,6 +259,20 @@ def get_topic_title(topic_id):
     conn.close()
     return row[0] if row else None
 
+def get_first_subtopic(topic_id):
+    conn = connect()
+    c = conn.cursor()
+    c.execute('''
+        SELECT s.id, s.title, t.id, t.title
+        FROM subtopics s
+        JOIN topics t ON s.topic_id = t.id
+        WHERE t.id = %s
+        ORDER BY s.id ASC
+        LIMIT 1
+    ''', (topic_id,))
+    result = c.fetchone()
+    conn.close()
+    return result
 
 
 def save_difficulty(user_id, topic, level):

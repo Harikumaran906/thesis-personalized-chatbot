@@ -382,6 +382,8 @@ def select_topics():
             if categorize_topic(title) in new_categories:
                 new_topic_ids.append(tid)
         save_pref_topics(user_id, previously_selected_ids + new_topic_ids)
+        if new_topic_ids:
+            set_current_topic(user_id, new_topic_ids[0])
         user = get_user_by_id(user_id)
         all_questions = initial_tst_qn()
         questions = [q for q in all_questions if q["category"] in new_categories][:25]
@@ -395,7 +397,6 @@ def select_topics():
     selected_topic_ids = get_pref_topic(user_id)
     selected_titles = [title for tid, title in all_topics if tid in selected_topic_ids]
     selected_categories = list(set(categorize_topic(title) for title in selected_titles))
-
     return render_template('pref_topic.html',
                            username=session['username'],
                            all_categories=all_categories,
