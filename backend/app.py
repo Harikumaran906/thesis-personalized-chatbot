@@ -289,6 +289,9 @@ def mark_done():
         if len(completed) == len(subtopics):
             topic = get_topic_title(topic_id)
             save_score(user_id, topic, 0, "Completed")
+            remaining = [tid for tid in get_pref_topic(user_id) if tid != topic_id]
+            if remaining:
+                set_current_topic(user_id, remaining[0])
 
     return render_template('index.html',
                            username=session['username'],
