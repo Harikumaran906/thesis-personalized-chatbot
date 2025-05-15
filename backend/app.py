@@ -269,29 +269,31 @@ def start_guided():
 def mark_done():
     if 'user_id' not in session:
         return redirect('/login')
-
     user_id = session['user_id']
     subtopic_id = int(request.form['subtopic_id'])
-
     conn = connect()
     c = conn.cursor()
     c.execute("SELECT topic_id FROM subtopics WHERE id = %s", (subtopic_id,))
     row = c.fetchone()
     conn.close()
-
     if row:
         topic_id = row[0]
         mark_subtopic_completed(user_id, topic_id, subtopic_id)
-
         subtopics = get_subtopics_by_topic(topic_id)
         completed = [s[0] for s in subtopics if is_subtopic_completed(user_id, s[0])]
         if len(completed) == len(subtopics):
             topic = get_topic_title(topic_id)
             save_score(user_id, topic, 0, "Completed")
-            remaining = [tid for tid in get_pref_topic(user_id) if tid != topic_id]
+            all_topics = dict(get_all_topics())
+            selected_ids = get_pref_topic(user_id)
+            category = categorize_topic(topic)
+            remaining = []
+            for tid in selected_ids:
+                t_title = all_topics[tid]
+                if categorize_topic(t_title) == category and t_title != topic:
+                    remaining.append(tid)
             if remaining:
                 set_current_topic(user_id, remaining[0])
-
     return render_template('index.html',
                            username=session['username'],
                            guided_response="Subtopic marked as completed!",
