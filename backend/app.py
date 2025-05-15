@@ -172,16 +172,13 @@ def chat_page():
                            total_subtopics=None,
                            show_next_button=False,
                            message=None)
-
 @app.route('/chat', methods=['POST'])
 def handle_chat():
     data = request.get_json()
     doubt = data['doubt']
-
     user_id = session['user_id']
     user = get_user_by_id(user_id)
-    answer_length = user[6]  # short / medium / detailed
-
+    answer_length = user[6]
     conn = connect()
     c = conn.cursor()
     c.execute('''
@@ -192,35 +189,37 @@ def handle_chat():
         LIMIT 1
     ''', (user_id,))
     row = c.fetchone()
-    conn.close()
-
+    ref_explanation = ""
     topic = "General"
     subtopic_title = None
-    ref_explanation = ""
     if row:
         topic, guided_msg = row
         if "–" in guided_msg:
             subtopic_title = guided_msg.split("–", 1)[1].strip()
-            ref_explanation = guided_answer(topic, subtopic_title, answer_length)
-
+        c.execute('''
+            SELECT content FROM messages
+            WHERE user_id = %s AND role = 'bot' AND topic = %s AND source = 'guided'
+            ORDER BY id DESC
+            LIMIT 1
+        ''', (user_id, topic))
+        ref_row = c.fetchone()
+        if ref_row:
+            ref_explanation = ref_row[0]
+    conn.close()
     prompt = f"""Doubt Explanation Context
-Topic: {topic}
-Subtopic: {subtopic_title or 'N/A'}
-Explanation Style: {answer_length}
-
-Explanation:
-{ref_explanation}
-
-Doubt:
-{doubt}
-"""
+                Topic: {topic}
+                Subtopic: {subtopic_title or 'N/A'}
+                Explanation Style: {answer_length}
+                Explanation: {ref_explanation}
+                Doubt: {doubt}
+                """
 
     raw = doubt_answer(prompt, answer_length, topic, subtopic_title)
     answer = markdown.markdown(raw)
-
     save_message(user_id, 'user', doubt, topic=topic, source='doubt')
     save_message(user_id, 'bot', answer, topic=topic, source='doubt')
     return jsonify({'ai_answer': answer})
+
 
 @app.route('/start_guided', methods=['GET', 'POST'])
 def start_guided():
