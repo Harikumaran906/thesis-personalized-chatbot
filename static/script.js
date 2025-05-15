@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const doubtForm = document.getElementById('doubt_form');
-    const doubtInput = document.getElementById('doubt');
+    const doubtInput = document.getElementById('user_input');
     const chatArea = document.getElementById('chat_area');
 
     if (doubtForm) {
@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const doubt = doubtInput.value.trim();
             if (!doubt) return;
 
-            // Show the user's question
             chatArea.innerHTML = `<p><strong>You:</strong> ${doubt}</p>`;
 
             fetch('/chat', {
