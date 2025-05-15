@@ -225,11 +225,24 @@ def handle_chat():
 def start_guided():
     if 'user_id' not in session:
         return redirect('/login')
-
     user_id = session['user_id']
     user = get_user_by_id(user_id)
     next_sub = get_next_subtopic(user_id)
+    if not next_sub:
+        selected_ids = get_pref_topic(user_id)
+        completed_topic_ids = [
+            tid for tid in selected_ids
+            if all(is_subtopic_completed(user_id, s[0]) for s in get_subtopics_by_topic(tid))
+        ]
 
+        unfinished_ids = [tid for tid in selected_ids if tid not in completed_topic_ids]
+        current_topic_id = None
+        for tid in unfinished_ids:
+            current_topic_id = tid
+            break
+        if current_topic_id:
+            set_current_topic(user_id, current_topic_id)
+            next_sub = get_next_subtopic(user_id)
     if not next_sub:
         return render_template('index.html',
                                username=session['username'],
@@ -246,14 +259,11 @@ def start_guided():
     subtopic_id, subtopic_title, topic_id, topic = next_sub
     raw = guided_answer(topic, subtopic_title, user[6])
     explanation = markdown.markdown(raw)
-
     save_message(user_id, 'user', f"{topic} – {subtopic_title}", topic=topic, source='guided')
     save_message(user_id, 'bot', explanation, topic=topic, source='guided')
-
     subtopics = get_subtopics_by_topic(topic_id)
     tot_st = len(subtopics)
     subtopic_num = next(i for i, s in enumerate(subtopics, 1) if s[0] == subtopic_id)
-
     return render_template('index.html',
                            username=session['username'],
                            guided_response=explanation,
@@ -265,35 +275,31 @@ def start_guided():
                            show_next_button=False,
                            message=None)
 
+
 @app.route('/mark_done', methods=['POST'])
 def mark_done():
     if 'user_id' not in session:
         return redirect('/login')
+
     user_id = session['user_id']
     subtopic_id = int(request.form['subtopic_id'])
+
     conn = connect()
     c = conn.cursor()
     c.execute("SELECT topic_id FROM subtopics WHERE id = %s", (subtopic_id,))
     row = c.fetchone()
     conn.close()
+
     if row:
         topic_id = row[0]
         mark_subtopic_completed(user_id, topic_id, subtopic_id)
+
         subtopics = get_subtopics_by_topic(topic_id)
         completed = [s[0] for s in subtopics if is_subtopic_completed(user_id, s[0])]
         if len(completed) == len(subtopics):
             topic = get_topic_title(topic_id)
             save_score(user_id, topic, 0, "Completed")
-            all_topics = dict(get_all_topics())
-            selected_ids = get_pref_topic(user_id)
-            category = categorize_topic(topic)
-            remaining = []
-            for tid in selected_ids:
-                t_title = all_topics[tid]
-                if categorize_topic(t_title) == category and t_title != topic:
-                    remaining.append(tid)
-            if remaining:
-                set_current_topic(user_id, remaining[0])
+
     return render_template('index.html',
                            username=session['username'],
                            guided_response="Subtopic marked as completed!",
