@@ -33,7 +33,6 @@ def init_db():
             role TEXT,
             content TEXT,
             topic TEXT,
-            is_confused INTEGER DEFAULT 0,
             source TEXT,
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -83,7 +82,7 @@ def init_db():
     ''')
 
     c.execute('''
-        CREATE TABLE IF NOT EXISTS user_settings (
+        CREATE TABLE IF NOT EXISTS user_current_topic (
             user_id INTEGER PRIMARY KEY,
             current_topic_id INTEGER
         )
@@ -133,13 +132,13 @@ def update_answer_length(user_id, new_length):
     conn.commit()
     conn.close()
 
-def save_message(user_id, role, content, topic=None, source=None, is_confused=0):
+def save_message(user_id, role, content, topic=None, source=None):
     conn = connect()
     c = conn.cursor()
     c.execute('''
-        INSERT INTO messages (user_id, role, content, topic, is_confused, source)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    ''', (user_id, role, content, topic, is_confused, source))
+        INSERT INTO messages (user_id, role, content, topic, source)
+        VALUES (%s, %s, %s, %s, %s)
+    ''', (user_id, role, content, topic, source))
     conn.commit()
     conn.close()
 
@@ -206,7 +205,7 @@ def get_subtopics_by_topic(topic_id):
 def get_next_subtopic(user_id):
     conn = connect()
     c = conn.cursor()
-    c.execute('SELECT current_topic_id FROM user_settings WHERE user_id = %s', (user_id,))
+    c.execute('SELECT current_topic_id FROM user_current_topic WHERE user_id = %s', (user_id,))
     row = c.fetchone()
     if not row:
         conn.close()
@@ -227,7 +226,6 @@ def get_next_subtopic(user_id):
     result = c.fetchone()
     conn.close()
     return result
-
 
 def mark_subtopic_completed(user_id, topic_id, subtopic_id):
     conn = connect()
@@ -274,7 +272,6 @@ def get_first_subtopic(topic_id):
     conn.close()
     return result
 
-
 def save_difficulty(user_id, topic, level):
     conn = connect()
     c = conn.cursor()
@@ -312,7 +309,7 @@ def set_current_topic(user_id, topic_id):
     conn = connect()
     c = conn.cursor()
     c.execute('''
-        INSERT INTO user_settings (user_id, current_topic_id)
+        INSERT INTO user_current_topic (user_id, current_topic_id)
         VALUES (%s, %s)
         ON CONFLICT (user_id) DO UPDATE SET current_topic_id = EXCLUDED.current_topic_id
     ''', (user_id, topic_id))
@@ -334,9 +331,7 @@ def get_completed_subtopic_ids(user_id):
 def save_pref_topics(user_id, topic_ids):
     conn = connect()
     c = conn.cursor()
-    # Clear previous selections
     c.execute("DELETE FROM user_selected_topics WHERE user_id = %s", (user_id,))
-    # Insert new selections
     for topic_id in topic_ids:
         c.execute("INSERT INTO user_selected_topics (user_id, topic_id) VALUES (%s, %s)", (user_id, topic_id))
     conn.commit()
