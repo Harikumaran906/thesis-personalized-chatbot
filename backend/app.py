@@ -30,9 +30,9 @@ def register():
         password = request.form['password']
         birthdate = request.form['birthdate']
         answer_length = request.form['answer_length']
-        if get_user(username, password):
+        existing = get_user_by_username(username)
+        if existing:
             return render_template('register.html', error="Username already exists. Choose a different one.")
-
         add_user(username, password, birthdate, answer_length)
         user = get_user(username, password)
         session['user_id'] = user[0]

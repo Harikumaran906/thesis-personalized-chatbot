@@ -344,3 +344,11 @@ def get_pref_topic(user_id):
     rows = c.fetchall()
     conn.close()
     return [row[0] for row in rows]
+
+def get_user_by_username(username):
+    conn = connect()
+    c = conn.cursor()
+    c.execute("SELECT * FROM users WHERE username = %s", (username,))
+    user = c.fetchone()
+    conn.close()
+    return user
