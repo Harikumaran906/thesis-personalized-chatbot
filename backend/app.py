@@ -272,7 +272,12 @@ def start_guided():
                                message=None)
 
     subtopic_id, subtopic_title, topic_id, topic = next_sub
-    raw = guided_answer(topic, subtopic_title, user[6])
+    difficulty_levels = get_difficulty_levels(user_id)
+    difficulty = difficulty_levels.get(topic, "Beginner")
+    answer_length = user[6]
+
+    raw = guided_answer(topic, subtopic_title, answer_length, difficulty)
+
     explanation = markdown.markdown(raw)
 
     save_message(user_id, 'user', f"{topic} – {subtopic_title}", topic=topic, source='guided')

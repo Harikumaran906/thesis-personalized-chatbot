@@ -18,14 +18,14 @@ def doubt_answer(full_prompt):
     return response.choices[0].message.content.strip()
 
 
-def guided_answer(topic, subtopic_title, answer_length="short"):
-    base_prompt = f"Explain the subtopic '{subtopic_title}' from the topic '{topic}' in a {answer_length} way with both theory and example."
+def guided_answer(topic, subtopic_title, answer_length, difficulty):
+    prompt = f"You are tutoring a {difficulty.lower()} level student. Explain the subtopic '{subtopic_title}' from the topic '{topic}' in a {answer_length} way with both theory and example."
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are an educational AI tutor."},
-            {"role": "user", "content": base_prompt}
+            {"role": "user", "content": prompt}
         ],
         temperature=0.7,
         max_tokens=500
@@ -103,14 +103,14 @@ def generate_quiz_qn(topic, explanation_text=None):
     if explanation_text:
         context += f" and the following explanation:\n\n{explanation_text}\n\n"
     prompt = context + """generate 5 multiple-choice questions to test the student's understanding.
-Each question must have 4 options labeled A-D and end with 'Answer: <letter>'.
-Format:
-Q1: ...
-A) ...
-B) ...
-C) ...
-D) ...
-Answer: <letter>"""
+                           Each question must have 4 options labeled A-D and end with 'Answer: <letter>'.
+                            Format:
+                            Q1: ...
+                            A) ...
+                            B) ...
+                            C) ...
+                            D) ...
+                            Answer: <letter>"""
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
