@@ -214,7 +214,7 @@ def handle_chat():
                 Doubt: {doubt}
                 """
 
-    raw = doubt_answer(prompt, answer_length, topic, subtopic_title)
+    raw = doubt_answer(prompt)
     answer = markdown.markdown(raw)
     save_message(user_id, 'user', doubt, topic=topic, source='doubt')
     save_message(user_id, 'bot', answer, topic=topic, source='doubt')

@@ -5,22 +5,18 @@ from dotenv import load_dotenv
 load_dotenv()
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def doubt_answer(doubt, answer_length="short", topic="General", subtopic_title=None):
-    scope = f"The topic is {topic}."
-    if subtopic_title:
-        scope += f" The subtopic is {subtopic_title}."
-    prompt = f"{scope} Now explain this doubt in a {answer_length} way using both theory and example:\n{doubt}"
-
+def doubt_answer(full_prompt):
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are an educational AI tutor."},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": full_prompt}
         ],
         temperature=0.7,
         max_tokens=500
     )
     return response.choices[0].message.content.strip()
+
 
 def guided_answer(topic, subtopic_title, answer_length="short"):
     base_prompt = f"Explain the subtopic '{subtopic_title}' from the topic '{topic}' in a {answer_length} way with both theory and example."
