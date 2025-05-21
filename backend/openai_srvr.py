@@ -5,12 +5,19 @@ from dotenv import load_dotenv
 load_dotenv()
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def doubt_answer(full_prompt):
+def doubt_answer(doubt, answer_length, topic, subtopic_title, ref_explanation):
+    prompt = f"""Doubt Explanation Context
+                Topic: {topic}
+                Subtopic: {subtopic_title or 'N/A'}
+                Explanation Style: {answer_length}
+                Explanation: {ref_explanation}
+                Doubt: {doubt}
+                """
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are an educational AI tutor."},
-            {"role": "user", "content": full_prompt}
+            {"role": "user", "content": prompt}
         ],
         temperature=0.7,
         max_tokens=500
@@ -18,8 +25,9 @@ def doubt_answer(full_prompt):
     return response.choices[0].message.content.strip()
 
 
+
 def guided_answer(topic, subtopic_title, answer_length, difficulty):
-    prompt = f"You are tutoring a {difficulty.lower()} level student. Explain the subtopic '{subtopic_title}' from the topic '{topic}' in a {answer_length} way with both theory and example."
+    prompt = f"You are teaching a {difficulty.lower()} level student. Explain the subtopic '{subtopic_title}' from the topic '{topic}' in a {answer_length} way with both theory and example."
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",

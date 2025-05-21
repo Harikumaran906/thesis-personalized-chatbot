@@ -206,15 +206,7 @@ def handle_chat():
         if ref_row:
             ref_explanation = ref_row[0]
     conn.close()
-    prompt = f"""Doubt Explanation Context
-                Topic: {topic}
-                Subtopic: {subtopic_title or 'N/A'}
-                Explanation Style: {answer_length}
-                Explanation: {ref_explanation}
-                Doubt: {doubt}
-                """
-
-    raw = doubt_answer(prompt)
+    raw = doubt_answer(doubt, answer_length, topic, subtopic_title, ref_explanation)
     answer = markdown.markdown(raw)
     save_message(user_id, 'user', doubt, topic=topic, source='doubt')
     save_message(user_id, 'bot', answer, topic=topic, source='doubt')
