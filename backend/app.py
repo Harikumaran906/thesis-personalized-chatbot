@@ -6,9 +6,6 @@ from backend.openai_srvr import (doubt_answer, guided_answer, generate_quiz_qn, 
 app = Flask(__name__, static_folder='../static', template_folder='templates')
 app.secret_key = 'Kumaran@123'
 
-@app.before_request
-def block_all():
-    return "The system is currently closed for access. Please try again later.", 503
 
 def categorize_topic(title):
     if "ARTIFICIAL INTELLIGENCE" in title:
