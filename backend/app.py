@@ -6,6 +6,12 @@ from backend.openai_srvr import (doubt_answer, guided_answer, generate_quiz_qn, 
 app = Flask(__name__, static_folder='../static', template_folder='templates')
 app.secret_key = 'Kumaran@123'
 
+@app.before_request
+def temporarily_disable_site():
+    # Allow admin access by IP (optional)
+    allowed_ips = ['127.0.0.1']  # Change this if needed
+    if request.remote_addr not in allowed_ips:
+        return "The system is currently unavailable. Please try again later.", 503
 
 def categorize_topic(title):
     if "ARTIFICIAL INTELLIGENCE" in title:
